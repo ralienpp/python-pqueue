@@ -101,7 +101,7 @@ class TestSuite_PersistenceTest(unittest.TestCase):
             q.get_nowait()
 
     def test_GarbageOnHead(self):
-	"""Adds garbage to the queue head and let the internal integrity checks
+        """Adds garbage to the queue head and let the internal integrity checks
         fix it"""
 
         q = Queue(self.path)
