@@ -13,6 +13,9 @@ if sys.version_info < (3, 0):
 else:
     from queue import Queue as SyncQ
 
+
+TEMP_SUBDIRECTORY = '_temp'
+
 def _truncate(fn, length):
     with open(fn, 'a') as fd:
         os.ftruncate(fd, length)
@@ -26,8 +29,18 @@ class Queue(SyncQ):
     is <= 0, the queue size is infinite. The optional argument chunksize
     indicates how many entries should exist in each chunk file on disk.
     """
-    def __init__(self, path, maxsize=0, chunksize=100):
+    def __init__(self, path, maxsize=0, chunksize=100, temp_subdir=False):
         self.path = path
+        # temp_subdir is used for overriding temp file location, by
+        # explicitly indicating that it must be a subdirectory of the
+        # path used for persisting the elements. Reference:
+        # https://github.com/balena/python-pqueue/issues/1
+        self.path_temp = None
+        if temp_subdir:
+            self.path_temp = os.path.join(path, TEMP_SUBDIRECTORY)
+            if not os.path.exists(self.path_temp):
+                os.makedirs(self.path_temp)
+
         self.chunksize = chunksize
         SyncQ.__init__(self, maxsize)
         self.info = self._loadinfo()
@@ -112,7 +125,7 @@ class Queue(SyncQ):
         return info
 
     def _saveinfo(self):
-        tmpfd, tmpfn = tempfile.mkstemp()
+        tmpfd, tmpfn = tempfile.mkstemp(dir=self.path_temp)
         os.write(tmpfd, pickle.dumps(self.info))
         os.close(tmpfd)
         # POSIX requires that 'rename' is an atomic operation
