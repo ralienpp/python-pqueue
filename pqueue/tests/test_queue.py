@@ -118,11 +118,11 @@ class TestSuite_PersistenceTest(unittest.TestCase):
         self.assertEqual('var1', q.get())
         q.task_done()
 
-    def test_AlternativeTempDir(self):
+    def test_TemporarySubdirectory(self):
         """Test behaviour when the temporary files directory is explicitly
         given"""
 
-        q = Queue(self.path, temp_subdir='ephemeral')
+        q = Queue(self.path, temp_subdir=True)
         for i in range(1000):
             read = random.getrandbits(1)
             if read:
